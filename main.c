@@ -10,7 +10,7 @@
 
 static void print_usage(void) {
 	printf(
-		"\nlinelen: Get length of each line in a file.\n"
+		"linelen: Get length of each line in a file.\n"
 		"usage:\n"
 		"    linelen [OPTIONS] FILENAME\n"
 		"options:\n"
@@ -20,7 +20,6 @@ static void print_usage(void) {
 		"    -m        Show only the maximum line length.\n"
 		"    -t <int>  Set the number of characters to count for each "
 		"tab. (Default 8)\n"
-		"\n"
 	);
 }
 

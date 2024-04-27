@@ -9,7 +9,7 @@ WARNING=-Wall -Wextra -Wpedantic -Wfloat-equal -Wundef -Wshadow \
 	-Werror=implicit-function-declaration -Wno-error=cpp
 
 FLAGS=-g -fstack-protector-all -D_FORTIFY_SOURCE=2 -fpie -pipe
-CFLAGS=$(WARNING) $(STD) $(OPT) $(FLAGS)
+CFLAGS=$(WARNING) $(STD) $(OPT) $(FLAGS) $(ANALYZER)
 
 .PHONY: all
 all: linelen
@@ -19,7 +19,23 @@ release: all
 
 .PHONY: debug
 debug:
-	$(MAKE) OPT='-O0 -ggdb3' all
+	$(MAKE) OPT='-O0 -ggdb3 -Werror' all
+
+.PHONY: asan
+asan:
+	$(MAKE) all OPT='-O0 -ggdb3 $(SANITIZE_OPTS)'
+
+.PHONY: tsan
+tsan:
+	$(MAKE) all OPT='-O0 -ggdb3 -fsanitize=thread'
+
+.PHONY: ubsan
+ubsan:
+	$(MAKE) all OPT='-O0 -ggdb3 -fsanitize=undefined'
+
+.PHONY: static-analysis
+static-analysis:
+	$(MAKE) all ANALYZER='-fanalyzer'
 
 linelen: main.c
 	$(CC) -o linelen main.c $(CFLAGS) $(LDFLAGS)
