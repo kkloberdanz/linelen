@@ -23,7 +23,7 @@ debug:
 
 .PHONY: asan
 asan:
-	$(MAKE) all OPT='-O0 -ggdb3 $(SANITIZE_OPTS)'
+	$(MAKE) all OPT='-O0 -ggdb3 -fsanitize=address,leak'
 
 .PHONY: tsan
 tsan:
