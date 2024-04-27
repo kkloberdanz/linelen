@@ -1,0 +1,4 @@
+linelen
+*.o
+*.swp
+*.dSYM
