@@ -3,6 +3,7 @@
  *
  * Copyright (c) 2024 Kyle Kloberdanz
  */
+#define _DEFAULT_SOURCE
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -75,15 +76,58 @@ static void print_info(long len, long lineno, const char *filename) {
 	printf("%s:%ld\t%ld\n", filename, lineno, len);
 }
 
+enum {
+	BUFFER_SIZE = 4096
+};
+
+static void handle_character(
+	char c,
+	const char *filename,
+	long *len,
+	long *lineno,
+	long *longest_len,
+	long *longest_lineno,
+	const struct opts *opts
+) {
+	int always_print = (opts->alert < 0) && (!opts->max_col_only);
+	switch (c) {
+	case '\n':
+		if ((opts->alert >= 0) && (*len > opts->alert)) {
+			print_info(*len, *lineno, filename);
+		}
+
+		if (opts->max_col_only && (*len > *longest_len)) {
+			*longest_lineno = *lineno;
+			*longest_len = *len;
+		}
+
+		if (always_print) {
+			print_info(*len, *lineno, filename);
+		}
+
+		*len = 0;
+		*lineno = *lineno + 1;
+		break;
+	case '\t':
+		*len += opts->tab_width;
+		break;
+	case '\r':
+		break;
+	default:
+		*len += 1;
+		break;
+	}
+}
+
 static int run_file(const char *filename, const struct opts *opts) {
 	FILE *fp = NULL;
 	int rc = 1;
 	long lineno = 1;
 	long len = 0;
-	int c;
 	long longest_lineno = 1;
 	long longest_len = 0;
-	int always_print = (opts->alert < 0) && (!opts->max_col_only);
+	size_t bytes_read = 0;
+	char buf[BUFFER_SIZE + 1];
 
 	fp = fopen(filename, "r");
 	if (!fp) {
@@ -91,36 +135,29 @@ static int run_file(const char *filename, const struct opts *opts) {
 		goto done;
 	}
 
-	/* TODO: Read data into a buffer using fread. */
-	while ((c = fgetc(fp))) {
-		if (feof(fp)) {
-			break;
+	while ((bytes_read = fread(buf, 1, BUFFER_SIZE, fp)) > 0) {
+		size_t i;
+
+		if (bytes_read != BUFFER_SIZE) {
+			if (ferror(fp)) {
+				perror("fread");
+				rc = 1;
+				goto done;
+			}
 		}
-		switch (c) {
-		case '\n':
-			if ((opts->alert >= 0) && (len > opts->alert)) {
-				print_info(len, lineno, filename);
-			}
+		for (i = 0; i < bytes_read; i++) {
+			handle_character(
+				buf[i],
+				filename,
+				&len,
+				&lineno,
+				&longest_len,
+				&longest_lineno,
+				opts
+			);
+		}
 
-			if (opts->max_col_only && (len > longest_len)) {
-				longest_lineno = lineno;
-				longest_len = len;
-			}
-
-			if (always_print) {
-				print_info(len, lineno, filename);
-			}
-
-			len = 0;
-			lineno++;
-			break;
-		case '\t':
-			len += opts->tab_width;
-			break;
-		case '\r':
-			break;
-		default:
-			len += 1;
+		if (feof(fp)) {
 			break;
 		}
 	}
