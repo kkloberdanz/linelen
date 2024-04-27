@@ -18,7 +18,6 @@ static void print_usage(void) {
 		"given threshold.\n"
 		"    -h        Display this help menu.\n"
 		"    -m        Show only the maximum line length.\n"
-		"header.\n"
 		"    -t <int>  Set the number of characters to count for each "
 		"tab. (Default 8)\n"
 		"\n"
