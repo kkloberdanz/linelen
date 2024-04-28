@@ -153,10 +153,6 @@ static int run_file(const char *filename, const struct opts *opts) {
 				&li
 			);
 		}
-
-		if (feof(fp)) {
-			break;
-		}
 	}
 
 	if (opts->max_col_only) {
