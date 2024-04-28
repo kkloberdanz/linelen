@@ -135,7 +135,7 @@ static int run_file(const char *filename, const struct opts *opts) {
 		goto done;
 	}
 
-	while ((bytes_read = fread(buf, 1, BUFFER_SIZE, fp)) > 0) {
+	while ((bytes_read = fread(buf, 1, BUFFER_SIZE, fp))) {
 		size_t i;
 
 		if (bytes_read != BUFFER_SIZE) {
