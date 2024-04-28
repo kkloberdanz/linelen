@@ -8,7 +8,7 @@ WARNING=-Wall -Wextra -Wpedantic -Wfloat-equal -Wundef -Wshadow \
 	-Wswitch-enum -Wunreachable-code -Wformat -Wformat-security -Wvla \
 	-Werror=implicit-function-declaration -Wno-error=cpp
 
-FLAGS=-g -fstack-protector-all -D_FORTIFY_SOURCE=2 -fpie -pipe
+FLAGS=-g -fstack-protector-all -D_FORTIFY_SOURCE=3 -fpie -pipe
 CFLAGS=$(WARNING) $(STD) $(OPT) $(FLAGS) $(ANALYZER)
 
 .PHONY: all
