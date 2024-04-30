@@ -138,12 +138,10 @@ static int run_file(const char *filename, const struct opts *opts) {
 	while ((bytes_read = fread(buf, 1, BUFFER_SIZE, fp))) {
 		size_t i;
 
-		if (bytes_read != BUFFER_SIZE) {
-			if (ferror(fp)) {
-				perror("fread");
-				rc = 1;
-				goto done;
-			}
+		if ((bytes_read != BUFFER_SIZE) && (ferror(fp))) {
+			perror("fread");
+			rc = 1;
+			goto done;
 		}
 		for (i = 0; i < bytes_read; i++) {
 			handle_character(
