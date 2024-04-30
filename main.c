@@ -6,6 +6,7 @@
 #define _DEFAULT_SOURCE
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <unistd.h>
 
 enum {
@@ -44,6 +45,7 @@ static void print_usage(void) {
 static void parse_opts(
 	int argc,
 	char **argv,
+	size_t *nel, /* out */
 	struct opts *opts /* out */
 ) {
 	int c;
@@ -79,6 +81,7 @@ static void parse_opts(
 	}
 	
 	opts->filenames = argv + optind;
+	*nel = argc - optind;
 }
 
 static void handle_character(
@@ -169,12 +172,21 @@ done:
 	return rc;
 }
 
+static int compar(const void *a, const void *b) {
+	const char *const *s1 = a;
+	const char *const *s2 = b;
+	return strcmp(*s1, *s2);
+}
+
 int main(int argc, char **argv) {
 	struct opts opts;
 	int i = 0;
 	int rc = 0;
+	size_t nel = 0;
 
-	parse_opts(argc, argv, &opts);
+	parse_opts(argc, argv, &nel, &opts);
+
+	qsort(opts.filenames, nel, sizeof(*opts.filenames), compar);
 
 	for (i = 0; opts.filenames[i] != NULL; i++) {
 		rc = run_file(opts.filenames[i], &opts);
