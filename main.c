@@ -126,6 +126,7 @@ static int run_file(const char *filename, const struct opts *opts) {
 	size_t bytes_read = 0;
 	char buf[BUFFER_SIZE + 1];
 	struct line_info li;
+	char c;
 
 	li.lineno = 1;
 	li.len = 0;
@@ -147,13 +148,19 @@ static int run_file(const char *filename, const struct opts *opts) {
 			goto done;
 		}
 		for (i = 0; i < bytes_read; i++) {
+			c = buf[i];
 			handle_character(
-				buf[i],
+				c,
 				filename,
 				opts,
 				&li
 			);
 		}
+	}
+
+	/* Handle case if file does not end in \n. */
+	if (c != '\n') {
+		handle_character('\n', filename, opts, &li);
 	}
 
 	if (opts->max_col_only) {
@@ -164,6 +171,7 @@ static int run_file(const char *filename, const struct opts *opts) {
 			li.longest_len
 		);
 	}
+
 	rc = 0;
 done:
 	if (fp) {
