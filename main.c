@@ -4,6 +4,7 @@
  * Copyright (c) 2024 Kyle Kloberdanz
  */
 #define _DEFAULT_SOURCE
+#include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -42,6 +43,16 @@ static void print_usage(void) {
 	);
 }
 
+static int is_number(const char *s) {
+	size_t i;
+	for (i = 0; s[i] != '\0'; i++) {
+		if (!isdigit(s[i])) {
+			return 0;
+		}
+	}
+	return 1;
+}
+
 static void parse_opts(
 	int argc,
 	char **argv,
@@ -58,6 +69,10 @@ static void parse_opts(
 	while ((c = getopt(argc, argv, "a:hmt:")) != -1) {
 		switch (c) {
 		case 'a':
+			if (!is_number(optarg)) {
+				print_usage();
+				exit(EXIT_FAILURE);
+			}
 			opts->alert = atol(optarg);
 			break;
 		case 'h':
@@ -67,6 +82,10 @@ static void parse_opts(
 			opts->max_col_only = 1;
 			break;
 		case 't':
+			if (!is_number(optarg)) {
+				print_usage();
+				exit(EXIT_FAILURE);
+			}
 			opts->tab_width = atol(optarg);
 			break;
 		default:
@@ -127,6 +146,7 @@ static int run_file(const char *filename, const struct opts *opts) {
 	char buf[BUFFER_SIZE + 1];
 	struct line_info li;
 	char c;
+	int has_data = 0;
 
 	li.lineno = 1;
 	li.len = 0;
@@ -141,8 +161,9 @@ static int run_file(const char *filename, const struct opts *opts) {
 
 	while ((bytes_read = fread(buf, 1, BUFFER_SIZE, fp))) {
 		size_t i;
+		has_data = 1;
 
-		if ((bytes_read != BUFFER_SIZE) && (ferror(fp))) {
+		if ((bytes_read != BUFFER_SIZE) && ferror(fp)) {
 			perror("fread");
 			rc = 1;
 			goto done;
@@ -159,7 +180,7 @@ static int run_file(const char *filename, const struct opts *opts) {
 	}
 
 	/* Handle case if file does not end in \n. */
-	if (c != '\n') {
+	if (has_data && (c != '\n')) {
 		handle_character('\n', filename, opts, &li);
 	}
 
