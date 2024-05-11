@@ -10,6 +10,10 @@
 #include <string.h>
 #include <unistd.h>
 
+#define bool char
+#define true 1
+#define false 0
+
 enum {
 	BUFFER_SIZE = 4096
 };
@@ -17,7 +21,7 @@ enum {
 struct opts {
 	char **filenames;
 	long tab_width;
-	int max_col_only;
+	bool max_col_only;
 	long alert;
 };
 
@@ -43,14 +47,14 @@ static void print_usage(void) {
 	);
 }
 
-static int is_number(const char *s) {
+static bool is_number(const char *s) {
 	size_t i;
 	for (i = 0; s[i] != '\0'; i++) {
 		if (!isdigit(s[i])) {
-			return 0;
+			return false;
 		}
 	}
-	return 1;
+	return true;
 }
 
 static void parse_opts(
@@ -63,7 +67,7 @@ static void parse_opts(
 
 	opts->tab_width = 8;
 	opts->filenames = NULL;
-	opts->max_col_only = 0;
+	opts->max_col_only = false;
 	opts->alert = -1;
 
 	while ((c = getopt(argc, argv, "a:hmt:")) != -1) {
@@ -79,7 +83,7 @@ static void parse_opts(
 			print_usage();
 			exit(EXIT_SUCCESS);
 		case 'm':
-			opts->max_col_only = 1;
+			opts->max_col_only = true;
 			break;
 		case 't':
 			if (!is_number(optarg)) {
@@ -146,7 +150,7 @@ static int run_file(const char *filename, const struct opts *opts) {
 	char buf[BUFFER_SIZE + 1];
 	struct line_info li;
 	char c;
-	int has_data = 0;
+	bool has_data = false;
 
 	li.lineno = 1;
 	li.len = 0;
@@ -161,7 +165,7 @@ static int run_file(const char *filename, const struct opts *opts) {
 
 	while ((bytes_read = fread(buf, 1, BUFFER_SIZE, fp))) {
 		size_t i;
-		has_data = 1;
+		has_data = true;
 
 		if ((bytes_read != BUFFER_SIZE) && ferror(fp)) {
 			perror("fread");
