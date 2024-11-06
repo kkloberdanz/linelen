@@ -157,10 +157,14 @@ static int run_file(const char *filename, const struct opts *opts) {
 	li.longest_lineno = 1;
 	li.longest_len = 0;
 
-	fp = fopen(filename, "r");
-	if (!fp) {
-		perror("fopen");
-		goto done;
+	if (strcmp(filename, ":stdin:") == 0) {
+		fp = stdin;
+	} else {
+		fp = fopen(filename, "r");
+		if (!fp) {
+			perror("fopen");
+			goto done;
+		}
 	}
 
 	while ((bytes_read = fread(buf, 1, BUFFER_SIZE, fp))) {
@@ -199,7 +203,7 @@ static int run_file(const char *filename, const struct opts *opts) {
 
 	rc = 0;
 done:
-	if (fp) {
+	if (fp && (fp != stdin)) {
 		fclose(fp);
 	}
 	return rc;
